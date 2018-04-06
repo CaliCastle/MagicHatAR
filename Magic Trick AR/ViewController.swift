@@ -118,6 +118,15 @@ class ViewController: UIViewController, ARSCNViewDelegate {
             let position = SCNVector3Make(camera.transform.columns.3.x, camera.transform.columns.3.y, camera.transform.columns.3.z)
             
             if let ballNode = createBallFromScene(to: position) {
+                if let pointOfView = sceneView.pointOfView {
+                    let transform = pointOfView.transform
+                    let orientation = SCNVector3Make(-transform.m31, -transform.m32, -transform.m33)
+                    
+                    ballNode.physicsBody?.applyForce(orientation, asImpulse: true)
+                }
+                
+                sceneView.scene.rootNode.addChildNode(ballNode)
+                
                 balls.append(ballNode)
             }
         }
@@ -134,16 +143,12 @@ class ViewController: UIViewController, ARSCNViewDelegate {
         
         ballNode.position = position
         
-        let physicsBody = SCNPhysicsBody(type: .dynamic, shape: SCNPhysicsShape(geometry: SCNSphere(radius: 0.1)))
+        let physicsBody = SCNPhysicsBody(type: .dynamic, shape: SCNPhysicsShape(node: ballNode))
         physicsBody.mass = 2
         physicsBody.friction = 2
         physicsBody.contactTestBitMask = 1
         
         ballNode.physicsBody = physicsBody
-        
-        ballNode.physicsBody?.applyForce(.init(0, 0, -18), asImpulse: false)
-        
-        sceneView.scene.rootNode.addChildNode(ballNode)
         
         return ballNode
     }
